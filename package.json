@@ -54,6 +54,7 @@
     "threads-plugin": "^1.4.0",
     "ton": "^12.1.5",
     "ton-compiler": "^2.0.0",
-    "ton-contract-executor": "^0.5.2"
+    "ton-contract-executor": "^0.5.2",
+    "web-tree-sitter": "^0.20.7"
   }
 }
