@@ -1,5 +1,5 @@
 {
-  "name": "ton2.1",
+  "name": "ton2.2",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -40,21 +40,26 @@
     "webpack-dev-server": "^4.11.1"
   },
   "dependencies": {
+    "-": "^0.0.1",
     "@monaco-editor/react": "^4.4.6",
     "browserfs": "^1.4.3",
     "fs": "^0.0.1-security",
     "monaco-editor": "^0.34.1",
+    "monaco-editor-textmate": "^4.0.0",
     "monaco-editor-webpack-plugin": "^7.0.1",
+    "monaco-textmate": "^3.0.1",
     "monaco-tree-sitter": "^0.0.5",
     "node-polyfill-webpack-plugin": "^2.0.1",
+    "onigasm": "^2.2.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "s": "^1.0.0",
     "styled-components": "^5.3.6",
     "threads": "^1.7.0",
     "threads-plugin": "^1.4.0",
     "ton": "^12.1.5",
     "ton-compiler": "^2.0.0",
     "ton-contract-executor": "^0.5.2",
-    "web-tree-sitter": "^0.20.7"
+    "web-tree-sitter": "^0.20.5"
   }
 }

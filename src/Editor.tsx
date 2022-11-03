@@ -80,83 +80,28 @@ export const EditorFn = () => {
     // const monacos = useMonaco();
 
 
-    useEffect(() => {
-        ( async () => {
-            // @ts-ignore--next-line
-            // @ts-ignore--next-line
-           await Parser.init();
-
-            // Load the language's grammar rules
-           const language = new Language(require("./cpp.json"));
-            // Load the language's parser library's WASM binary
-            //@ts-ignore--next-line
-            await language.init(treeSitterCppWasmUrl, Parser);
-
-
-            // @ts-ignore--next-line
-            // @ts-ignore--next-line
-           // monacos.editor.createModel("", func, language);
-           // monacos.languages.register({id: "func"});
-            // @ts-ignore--next-line
-
-            // let editor = monaco.editor.create(document.body, {
-            //     value: "int main() { return 0; }",
-            //     // This "language" property only affects the monaco-editor's built-in syntax highlighter
-            //     language: "func"
-            // });
-            // @ts-ignore--next-line
-        window.editor = monaco.editor.create(document.body, {
-            value: cppCode,
-            language: "cpp"
-        });
-            // @ts-ignore--next-line
-         ///   window.monacoTreeSitter = new MonacoTreeSitter(monaco, editor, language);
-
-            const monacoTreeSitter = new MonacoTreeSitter(monaco, editor, language);
-            monacoTreeSitter.refresh();
-            // console.log("monacoTreeSitter",monacoTreeSitter)
-            // console.log("monaco",monacos)
-
-
-        })()
-    },[])
 
     async function  handleEditorDidMount(editor: any, monaco: any)  {
-        // @ts-ignore--next-line
-        // await Parser.init();
-        //
-        // // Load the language's grammar rules
-        // const language = new Language(require("./grammar.json"));
-        // // Load the language's parser library's WASM binary
-        // // @ts-ignore--next-line
-        // await language.init(func, Parser);
-        // // @ts-ignore--next-line
-        //
-        // // @ts-ignore--next-line
-        // const monacoTreeSitter = new MonacoTreeSitter(monaco, editor, language);
-        //
-        // console.log(monacoTreeSitter)
         editorRef.current = editor;
-
     }
 
-    // const runCodeHandler = async () => {
-    //     const prewCode = await runCode(editorRef.current.getValue());
-    //     setValue(JSON.stringify(prewCode))
-    //   console.log( await runCode(editorRef.current.getValue()))
-    // }
+    const runCodeHandler = async () => {
+        const prewCode = await runCode(editorRef.current.getValue());
+        setValue(JSON.stringify(prewCode))
+      //console.log( await runCode(editorRef.current.getValue()))
+    }
 
     return <Container>
-{/*        <button onClick={()=>runCodeHandler()}>Run</button>  <Wrap>   <Editor*/}
+        <button onClick={()=>runCodeHandler()}>Run</button>  <Wrap>   <Editor
 
-{/*        theme={"vs-dark"}*/}
-{/*        height="90vh"*/}
-{/*        defaultLanguage="func"*/}
-{/*        defaultValue="// some comment"*/}
-{/*        onMount={handleEditorDidMount}*/}
-{/*    />*/}
-{/*<Prew>{value}</Prew>*/}
-{/*    </Wrap>*/}
+        theme={"vs-dark"}
+        height="90vh"
+        defaultLanguage="func"
+        defaultValue="// some comment"
+        onMount={handleEditorDidMount}
+    />
+<Prew>{value}</Prew>
+    </Wrap>
     </Container>
 
 }
