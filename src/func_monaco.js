@@ -3,7 +3,6 @@ import {Language, Theme} from "monaco-tree-sitter";
 import func from "./tree-sitter-func.wasm";
 import * as monaco from "monaco-editor";
 
-Theme.load(require("./test.json"));
 monaco.languages.register()
 let nMonaco = null;
 (async () => {

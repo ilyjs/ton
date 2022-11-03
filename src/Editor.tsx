@@ -1,40 +1,44 @@
-import React, {useRef, useState} from "react";
-import Editor from "@monaco-editor/react";
+import React, {useEffect, useRef, useState} from "react";
+import Editor, {useMonaco} from "@monaco-editor/react";
 import { loader } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
 import styled from "styled-components";
 import {runCode} from "./tonvm";
 // @ts-ignore--next-line
-import func from "./tree-sitter-func.wasm"
+import func from "./tree-sitter-func.wasm";
+// @ts-ignore--next-line
+import treeSitterCppWasmUrl from "./tree-sitter-cpp.wasm"
 import * as Parser from "web-tree-sitter"
-import { Theme, Language } from "monaco-tree-sitter";
+import { Theme, Language, MonacoTreeSitter } from "monaco-tree-sitter";
 
-Theme.load(require("./test.json"));
-let nMonaco = null;
-(async () => {
-    // @ts-ignore--next-line
-    await Parser.init();
-    const language = new Language(require("./grammar.json"));
-    // Load the language's parser library's WASM binary
-    // @ts-ignore--next-line
+monaco.editor.createModel("", "func",func)
+// Theme.load(require("./test.json"));
+// let nMonaco = null;
+// (async () => {
+//     // @ts-ignore--next-line
+//     await Parser.init();
+//     const language = new Language(require("./grammar.json"));
+//     // Load the language's parser library's WASM binary
+//     // @ts-ignore--next-line
+//
+//     await language.init(func, Parser);
+//
+//     nMonaco = monaco.editor.create(document.body, {
+//         value: "int main() { return 0; }",
+//         // This "language" property only affects the monaco-editor's built-in syntax highlighter
+//         language: "func"
+//     });
+//     // @ts-ignore--next-line
+//     const monacoTreeSitter = new MonacoTreeSitter(Monaco, editor, language);
+//
+//
+// })();
 
-    await language.init(func, Parser);
-
-    nMonaco = monaco.editor.create(document.body, {
-        value: "int main() { return 0; }",
-        // This "language" property only affects the monaco-editor's built-in syntax highlighter
-        language: "func"
-    });
-    // @ts-ignore--next-line
-
-
-})();
-
-loader.config({
-    // @ts-ignore--next-line
-
-    monaco
-});
+// loader.config({
+//     // @ts-ignore--next-line
+//
+//     monaco
+// });
 const Wrap = styled.div`
 display: flex;
 `
@@ -53,31 +57,106 @@ background: black;
 `
 
 
-
+Theme.load(require("./test.json"));
+const cppCode = `#include <cstdio>
+#include <vector>
+struct TreeNode {
+    TreeNode *leftChild, *rightChild;
+    std::vector<double> data;
+    int weight;
+};
+int main() {
+    TreeNode root;
+    root.leftChild = new TreeNode();
+    int a, b;
+    scanf("%d %d", &a, &b);
+    auto c = a + b;
+    return 0 + a - b + c;
+}`;
 
 export const EditorFn = () => {
     const [value, setValue] = useState("")
     const editorRef = useRef(null);
+    // const monacos = useMonaco();
 
-    function handleEditorDidMount(editor: any, monaco: any) {
+
+    useEffect(() => {
+        ( async () => {
+            // @ts-ignore--next-line
+            // @ts-ignore--next-line
+           await Parser.init();
+
+            // Load the language's grammar rules
+           const language = new Language(require("./cpp.json"));
+            // Load the language's parser library's WASM binary
+            //@ts-ignore--next-line
+            await language.init(treeSitterCppWasmUrl, Parser);
+
+
+            // @ts-ignore--next-line
+            // @ts-ignore--next-line
+           // monacos.editor.createModel("", func, language);
+           // monacos.languages.register({id: "func"});
+            // @ts-ignore--next-line
+
+            // let editor = monaco.editor.create(document.body, {
+            //     value: "int main() { return 0; }",
+            //     // This "language" property only affects the monaco-editor's built-in syntax highlighter
+            //     language: "func"
+            // });
+            // @ts-ignore--next-line
+        window.editor = monaco.editor.create(document.body, {
+            value: cppCode,
+            language: "cpp"
+        });
+            // @ts-ignore--next-line
+         ///   window.monacoTreeSitter = new MonacoTreeSitter(monaco, editor, language);
+
+            const monacoTreeSitter = new MonacoTreeSitter(monaco, editor, language);
+            monacoTreeSitter.refresh();
+            // console.log("monacoTreeSitter",monacoTreeSitter)
+            // console.log("monaco",monacos)
+
+
+        })()
+    },[])
+
+    async function  handleEditorDidMount(editor: any, monaco: any)  {
+        // @ts-ignore--next-line
+        // await Parser.init();
+        //
+        // // Load the language's grammar rules
+        // const language = new Language(require("./grammar.json"));
+        // // Load the language's parser library's WASM binary
+        // // @ts-ignore--next-line
+        // await language.init(func, Parser);
+        // // @ts-ignore--next-line
+        //
+        // // @ts-ignore--next-line
+        // const monacoTreeSitter = new MonacoTreeSitter(monaco, editor, language);
+        //
+        // console.log(monacoTreeSitter)
         editorRef.current = editor;
+
     }
 
-    const runCodeHandler = async () => {
-        const prewCode = await runCode(editorRef.current.getValue());
-        setValue(JSON.stringify(prewCode))
-      console.log( await runCode(editorRef.current.getValue()))
-    }
+    // const runCodeHandler = async () => {
+    //     const prewCode = await runCode(editorRef.current.getValue());
+    //     setValue(JSON.stringify(prewCode))
+    //   console.log( await runCode(editorRef.current.getValue()))
+    // }
 
-    return <Container> <button onClick={()=>runCodeHandler()}>Run</button>  <Wrap>   <Editor
-        theme={"vs-dark"}
-        height="90vh"
-        defaultLanguage="func"
-        defaultValue="// some comment"
-        onMount={handleEditorDidMount}
-    />
-<Prew>{value}</Prew>
-    </Wrap>
+    return <Container>
+{/*        <button onClick={()=>runCodeHandler()}>Run</button>  <Wrap>   <Editor*/}
+
+{/*        theme={"vs-dark"}*/}
+{/*        height="90vh"*/}
+{/*        defaultLanguage="func"*/}
+{/*        defaultValue="// some comment"*/}
+{/*        onMount={handleEditorDidMount}*/}
+{/*    />*/}
+{/*<Prew>{value}</Prew>*/}
+{/*    </Wrap>*/}
     </Container>
 
 }

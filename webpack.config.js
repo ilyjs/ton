@@ -17,7 +17,8 @@ module.exports = {
             {
                 test: /\.wasm$/,
                 loader: "file-loader",
-                type: "javascript/auto" // Disable Webpack's built-in WASM loader
+                type: "javascript/auto", // Disable Webpack's built-in WASM loader
+
             },
             {
                 test: /\.ttf$/,
@@ -62,7 +63,7 @@ module.exports = {
             title: 'our project',
             template: 'src/index.html' }),
         new webpack.HotModuleReplacementPlugin(),
-        new MonacoWebpackPlugin(),
+        new MonacoWebpackPlugin({languages: ["cpp"]}),
         new NodePolyfillPlugin({
             excludeAliases: ['console']
         }),

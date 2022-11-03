@@ -1,4 +1,4 @@
-() recv_internal(slice in_msg_body) impure {
+  () recv_internal(slice in_msg_body) impure {
   throw_if(35,in_msg_body.slice_bits() < 32);
 
   int n = in_msg_body~load_uint(32);
@@ -14,6 +14,6 @@
 int get_total() method_id {
   slice ds = get_data().begin_parse();
   int total = ds~load_uint(64);
-  
+
   return total;
 }
