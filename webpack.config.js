@@ -63,7 +63,7 @@ module.exports = {
             title: 'our project',
             template: 'src/index.html' }),
         new webpack.HotModuleReplacementPlugin(),
-        new MonacoWebpackPlugin({languages: ["cpp"]}),
+        new MonacoWebpackPlugin({languages: ["cpp",'typescript', 'javascript']}),
         new NodePolyfillPlugin({
             excludeAliases: ['console']
         }),
