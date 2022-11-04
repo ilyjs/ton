@@ -45,15 +45,14 @@ module.exports = {
                         ],
                     },
                 },
-                alias: {
-                    'fs': 'memfs',
-                }
             },
         ],
     },
     resolve: {
         extensions: ['.tsx', '.ts', '.js'],
-
+        alias: {
+            'fs': 'memfs',
+        }
     },
     output: {
         // filename: 'bundle.js',
