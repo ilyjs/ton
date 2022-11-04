@@ -9,7 +9,7 @@ const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 module.exports = {
     mode: "development",
 
-    entry: "./src/index.tsx",
+    entry: "./src/main.tsx",
 
     module: {
 
@@ -35,7 +35,7 @@ module.exports = {
             {
                 test: /\.(ts|js)x?$/i,
                 exclude: /node_modules/,
-                use: {
+                use: [{
                     loader: "babel-loader",
                     options: {
                         presets: [
@@ -44,7 +44,7 @@ module.exports = {
                             "@babel/preset-typescript",
                         ],
                     },
-                },
+                }, "source-map-loader"],
             },
         ],
     },

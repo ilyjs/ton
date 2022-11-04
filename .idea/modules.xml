@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/func-editor.iml" filepath="$PROJECT_DIR$/.idea/func-editor.iml" />
+      <module fileurl="file://$USER_HOME$/Downloads/monaco-tree-master/.idea/monaco-tree-master.iml" filepath="$USER_HOME$/Downloads/monaco-tree-master/.idea/monaco-tree-master.iml" />
     </modules>
   </component>
 </project>

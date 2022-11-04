@@ -1,31 +1,12 @@
-import { Builder, Cell } from 'ton';
-import {compileFunc, SourcesMap} from 'ton-compiler/dist/wasm';
-import { SmartContract, runTVM, TVMStack,TVMStackEntryTuple, } from 'ton-contract-executor';
-import  {crc16} from "ton-contract-executor/dist/utils/crc16"
+import {Builder, Cell} from 'ton';
+import {compileFunc} from 'ton-compiler/dist/wasm';
+import {crc16} from "ton-contract-executor/dist/utils/crc16"
 
 const vmExec_1 = require("ton-contract-executor/dist/vm-exec/vm-exec");
-(async () => {
 
-
-    const SourcesMap = {"contract.fc": `() recv_internal(slice in_msg_body) impure {
-  throw_if(35,in_msg_body.slice_bits() < 32);
-
-  int n = in_msg_body~load_uint(32);
-
-  slice ds = get_data().begin_parse();
-  int total = ds~load_uint(64);
-
-  total += n;
-
-  set_data(begin_cell().store_uint(total, 64).end_cell());
-}
-
-int get_total() method_id {
-  slice ds = get_data().begin_parse();
-  int total = ds~load_uint(64);
-  
-  return total;
-}`, "stdlib.fc": `
+export const runCode = async (code: string) => {
+  const SourcesMap = {
+    "contract.fc": code, "stdlib.fc": `
 ;; Standard library for funC
 ;;
 
@@ -240,96 +221,107 @@ builder store_coins(builder b, int x) asm "STVARUINT16";
 
 int equal_slices (slice a, slice b) asm "SDEQ";
 int builder_null?(builder b) asm "ISNULL";
-builder store_builder(builder to, builder from) asm "STBR";`}
+builder store_builder(builder to, builder from) asm "STBR";`
+  }
 
 // @ts-ignore--next-line
-    let instance = null;
-    let isInitializing = false;
+  let instance = null;
+  let isInitializing = false;
+  // @ts-ignore--next-line
+  let waiters = [];
+
+  async function getInstance() {
     // @ts-ignore--next-line
-    let waiters = [];
-    async function getInstance() {
-        // @ts-ignore--next-line
-        if (instance) {
-            // @ts-ignore--next-line
-            return instance;
-        }
-        if (isInitializing) {
-            return new Promise(resolve => waiters.push(resolve));
-        }
-        isInitializing = true;
-        // @ts-ignore--next-line
-        instance = await vmExec_1();
-        // Notify all waiters
-        // @ts-ignore--next-line
-        waiters.map(w => w(instance));
-        return instance;
+    if (instance) {
+      // @ts-ignore--next-line
+      return instance;
     }
-
-
-    async function vm_exec(config: any) {
-        let vmInstance = await getInstance();
-        let bytes = vmInstance.intArrayFromString(JSON.stringify(config));
-        let ref = vmInstance.allocate(bytes, vmExec_1.ALLOC_NORMAL);
-        let res = vmInstance._vm_exec(bytes.length - 1, ref);
-        let out = vmInstance.UTF8ToString(res);
-        vmInstance._free(ref);
-        vmInstance._free(res);
-        return JSON.parse(out);
+    if (isInitializing) {
+      return new Promise(resolve => waiters.push(resolve));
     }
-
-
-    const result = await compileFunc({
-        entryPoints: ['stdlib.fc', 'contract.fc'],sources:SourcesMap
-    });
+    isInitializing = true;
     // @ts-ignore--next-line
-    const codeBoc: string = result['codeBoc'];
-    const codeCell = Cell.fromBoc(Buffer.from(codeBoc, 'base64'))[0];
-    const dataCell = new Builder().storeUint(24, 64).endCell();
-    console.log(codeBoc)
-    console.log(codeCell)
-    console.log(dataCell);
-    const cellToBoc = (cell: any): string => {
-        return cell.toBoc({ idx: false }).toString('base64');
-    };
-    console.log("dataCell", cellToBoc(dataCell))
+    instance = await vmExec_1();
+    // Notify all waiters
+    // @ts-ignore--next-line
+    waiters.map(w => w(instance));
+    return instance;
+  }
 
-    // const contract = await SmartContract.fromCell(codeCell, dataCell, {
-    //     debug: true,
-    // });
-    // let dataCell = new Cell()
-    // dataCell.bits.writeUint(0, 32)
-    //let contract = await SmartContract.fromFuncSource(source, dataCell, {getMethodsMutate: true})
 
-       const function_selector = crc16("get_total")  & 0xffff | 0x10000 //((0, crc16)("too") & 0xffff) | 0x10000
-    console.log(function_selector);
-    // @ts-ignore
-    const config =  { debug: true,
-        function_selector,
-        // @ts-ignore--next-line
-        init_stack: [],
-        code: cellToBoc(codeCell),               // base64 encoded TVM fift assembly
-            data:cellToBoc(dataCell) ,               // base64 encoded boc(data_cell)
-        c7_register: {type: 'tuple', value: [{type: "null"}]},
+  async function vm_exec(config: any) {
+    let vmInstance = await getInstance();
+    let bytes = vmInstance.intArrayFromString(JSON.stringify(config));
+    let ref = vmInstance.allocate(bytes, vmExec_1.ALLOC_NORMAL);
+    let res = vmInstance._vm_exec(bytes.length - 1, ref);
+    let out = vmInstance.UTF8ToString(res);
+    vmInstance._free(ref);
+    vmInstance._free(res);
+    return JSON.parse(out);
+  }
+
+
+  const result = await compileFunc({
+    entryPoints: ['stdlib.fc', 'contract.fc'],
+    sources: SourcesMap
+  });
+  // @ts-ignore--next-line
+  const codeBoc: string = result['codeBoc'];
+  const codeCell = Cell.fromBoc(Buffer.from(codeBoc, 'base64'))[0];
+  const dataCell = new Builder().storeUint(24, 64).endCell();
+  console.log(codeBoc)
+  console.log(codeCell)
+  console.log(dataCell);
+  const cellToBoc = (cell: any): string => {
+    return cell.toBoc({idx: false}).toString('base64');
+  };
+  console.log("dataCell", cellToBoc(dataCell))
+
+  // const contract = await SmartContract.fromCell(codeCell, dataCell, {
+  //     debug: true,
+  // });
+  // let dataCell = new Cell()
+  // dataCell.bits.writeUint(0, 32)
+  //let contract = await SmartContract.fromFuncSource(source, dataCell, {getMethodsMutate: true})
+
+  const function_selector = crc16("get_total") & 0xffff | 0x10000 //((0, crc16)("too") & 0xffff) | 0x10000
+  console.log(function_selector);
+  // @ts-ignore
+  const config = {
+    debug: true,
+    function_selector,
+    // @ts-ignore--next-line
+    init_stack: [],
+    code: cellToBoc(codeCell),               // base64 encoded TVM fift assembly
+    data: cellToBoc(dataCell),               // base64 encoded boc(data_cell)
+    c7_register: {type: 'tuple', value: [{type: "null"}]},
+
+  }
+// @ts-ignore--next-line
+  const vm = await vm_exec(config);
+  return vm;
+  //console.log(vm);
+  //const runVM = await vmExec_1(config);
+  // @ts-ignore--next-line
+  //  console.log(runVM);
+  //let res = await contract.invokeGetMethod('test', [])
+
+  // @ts-ignore:next-line
+  // const codeBoc = result['codeBoc'];
+  //const codeCell = Cell.fromBoc(Buffer.from(codeBoc, 'base64'))[0];
+  //const dataCell = new Builder().storeUint(24, 64).endCell();
+  // const contract = await SmartContract.fromCell(codeCell, dataCell, {
+  //     debug: true,
+  // });
+  //
+  // const response = await contract.invokeGetMethod('get_total', []);
+  // const counter = response.result[0].toString();
+  //
+  // console.log({ codeBoc });
 
 }
-// @ts-ignore--next-line
-   const vm = await vm_exec(config);
-    console.log(vm);
-  //const runVM = await vmExec_1(config);
-    // @ts-ignore--next-line
-  //  console.log(runVM);
-    //let res = await contract.invokeGetMethod('test', [])
 
-    // @ts-ignore:next-line
-   // const codeBoc = result['codeBoc'];
-    //const codeCell = Cell.fromBoc(Buffer.from(codeBoc, 'base64'))[0];
-    //const dataCell = new Builder().storeUint(24, 64).endCell();
-    // const contract = await SmartContract.fromCell(codeCell, dataCell, {
-    //     debug: true,
-    // });
-    //
-    // const response = await contract.invokeGetMethod('get_total', []);
-    // const counter = response.result[0].toString();
-    //
-    // console.log({ codeBoc });
+(async () => {
+
+
 })();
