@@ -45,6 +45,9 @@ module.exports = {
                         ],
                     },
                 },
+                alias: {
+                    'fs': 'memfs',
+                }
             },
         ],
     },
@@ -61,16 +64,17 @@ module.exports = {
     plugins: [
         new HtmlWebpackPlugin({
             title: 'our project',
-            template: 'src/index.html' }),
+            template: 'src/index.html'
+        }),
         new webpack.HotModuleReplacementPlugin(),
-        new MonacoWebpackPlugin({languages: ["cpp",'typescript', 'javascript']}),
+        new MonacoWebpackPlugin({languages: ["cpp", 'typescript', 'javascript']}),
         new NodePolyfillPlugin({
             excludeAliases: ['console']
         }),
 
     ],
     devtool: "inline-source-map",
-    externals:["fs"],
+    externals: ["fs"],
     devServer: {
         static: path.join(__dirname, "build"),
         historyApiFallback: true,
