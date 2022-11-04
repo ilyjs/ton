@@ -1,5 +1,4 @@
 import React, {useEffect, useRef, useState} from "react";
-//import {transpile}  from "typescript";
 import compile from 'ts-browser-eval'
 import Editor, {useMonaco} from "@monaco-editor/react";
 import { loader } from "@monaco-editor/react";
@@ -8,7 +7,6 @@ import styled from "styled-components";
 import {runCode} from "./tonvm";
 import { Builder as Builder_, Cell as Cell_} from 'ton';
 import {compileFunc as  compileFunc_, SourcesMap} from 'ton-compiler/dist/wasm';
-import { SmartContract, runTVM, TVMStack,TVMStackEntryTuple, } from 'ton-contract-executor';
 import  {crc16 as crc16_} from "ton-contract-executor/dist/utils/crc16"
 const vmExec = require("ton-contract-executor/dist/vm-exec/vm-exec");
 
