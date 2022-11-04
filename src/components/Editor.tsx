@@ -18,7 +18,7 @@ import {crc16 as crc16_} from "ton-contract-executor/dist/utils/crc16"
 import ReactJson from 'react-json-view'
 import files from "../files";
 import {SmartContract} from "../ton/SmartContract";
-import {readFileSync, writeFileSync} from 'memfs';
+import {readFileSync, writeFileSync, mkdirSync} from 'memfs';
 
 const vmExec = require("ton-contract-executor/dist/vm-exec/vm-exec");
 
@@ -28,12 +28,15 @@ var runCodeFC = runCode;
 var crc16 = crc16_;
 var vmExec_1 = vmExec;
 var Buffer_ = Buffer;
-var contractCode = files["contract.fc"].value;
-window['fileName'] = 'contract.fc';
+window['fileName'] = "./01-simple-example/contract.fc";
+var contractCode = window['fileName'].value;
 
-writeFileSync('./contract.fc', files['contract.fc'].value);
-writeFileSync('./script.ts', files['script.ts'].value);
-writeFileSync('./stdlib.fc', files['stdlib.fc'].value);
+mkdirSync('./01-simple-example');
+mkdirSync('./02-nft-example');
+
+for (const filePath in files) {
+  writeFileSync(filePath, files[filePath].value);
+}
 
 const Wrap = styled.div`
   display: flex;
@@ -56,7 +59,7 @@ let patched = false;
 
 export const EditorFn = () => {
   const [value, setValue] = useState({});
-  const [fileName, setFileName] = useState("contract.fc");
+  const [fileName, setFileName] = useState("./01-simple-example/contract.fc");
 
   // hack for changing file from tree
   window['setFileName'] = (value) => {

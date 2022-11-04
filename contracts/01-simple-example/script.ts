@@ -9,8 +9,8 @@ const dataInit = new Builder()
 const contract = await SmartContract.fromFuncSource({
   entryPoints: ['stdlib.fc', 'contract.fc'],
   sources: {
-    'stdlib.fc': readFileSync('./stdlib.fc', 'utf-8'),
-    'contract.fc': readFileSync('./contract.fc', 'utf-8'),
+    'stdlib.fc': readFileSync('./01-simple-example/stdlib.fc', 'utf-8'),
+    'contract.fc': readFileSync('./01-simple-example/contract.fc', 'utf-8'),
   }
 }, dataInit, {
   debug: true

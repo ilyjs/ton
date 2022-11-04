@@ -3,6 +3,7 @@ import {wireTmGrammars} from "monaco-editor-textmate";
 import {loadWASM} from "onigasm";
 import {loader} from "@monaco-editor/react";
 import ftmLanguage from './ton/ftmLanguage.json';
+import files from './files';
 
 // @ts-ignore
 import NiceMonacoTree from 'nice-monaco-tree';
@@ -37,7 +38,7 @@ export async function rewireEditor(): Promise<any> {
     window['expandTree'] = () => {};
 
     const monacoTree = NiceMonacoTree.init(document.getElementById('tree'), {
-      files: ['contract.fc', 'script.ts', 'stdlib.fc'],
+      files: Object.keys(files).sort(new Intl.Collator('en-US', { numeric: false }).compare),
       onClick: (file) => {
         console.log(`Select ${file}`);
         window['setFileName'](file);
@@ -48,7 +49,7 @@ export async function rewireEditor(): Promise<any> {
       },
     });
 
-    monacoTree.setSelection('contract.fc');
+    monacoTree.setSelection('./01-simple-example/contract.fc');
     // monacoTree.setSelection('public/js/ui.js'); // 选中某个文件
     // monacoTree.getSelection(); // 获取当前选中的文件
     // monacoTree.expandAll(); // 递归展开所有文件夹
