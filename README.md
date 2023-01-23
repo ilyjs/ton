@@ -1,7 +1,7 @@
 # ton
 ## Project setup
 ```
-npm install
+npm i --legacy-peer-deps
 ```
 
 ### Compiles and hot-reloads for development
