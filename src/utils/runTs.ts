@@ -9,8 +9,8 @@ import {
     contractAddress,
     InternalMessage
 } from 'ton';
-import {readFileSync} from "memfs";
-import {compileFunc} from "ton-compiler/dist/wasm";
+import {readFileSync } from "memfs";
+import {compileFunc} from '@ton-community/func-js';
 
 var Builder = Builder_;
 var Cell = Cell_;
@@ -39,8 +39,6 @@ export const runTs = async (code: any, setValue: (object: object) => void) => {
             };
 
             const code = result[0].code.replace(/^import {.*$/gmi, '').replace(/^\n+/, '');
-
-            console.log(code);
 
             eval(`
             (async () => {

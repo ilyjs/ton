@@ -7,11 +7,12 @@ const dataInit = new Builder()
   .endCell();
 
 const contract = await SmartContract.fromFuncSource({
-  entryPoints: ['stdlib.fc', 'contract.fc'],
-  sources: {
-    'stdlib.fc': readFileSync('./01-simple-example/stdlib.fc', 'utf-8'),
-    'contract.fc': readFileSync('./01-simple-example/contract.fc', 'utf-8'),
-  }
+    targets: ['contract.fc'],
+    // Sources
+    sources: {
+        'stdlib.fc': readFileSync('./01-simple-example/stdlib.fc', 'utf-8'),
+        'contract.fc': readFileSync('./01-simple-example/contract.fc', 'utf-8'),
+    }
 }, dataInit, {
   debug: true
 });
