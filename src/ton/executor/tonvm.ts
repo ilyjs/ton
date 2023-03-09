@@ -1,12 +1,14 @@
 import {Builder, Cell} from 'ton';
-import {compileFunc} from 'ton-compiler/dist/wasm';
 import {crc16} from "ton-contract-executor/dist/utils/crc16"
+import {compileFunc} from '@ton-community/func-js';
 
 const vmExec_1 = require("ton-contract-executor/dist/vm-exec/vm-exec");
 
 export const runCode = async (code: string) => {
   const SourcesMap = {
-    "contract.fc": code, "stdlib.fc": `
+    targets: ['contract.fc'],
+    sources: {
+      "contract.fc": code, "stdlib.fc": `
 ;; Standard library for funC
 ;;
 
@@ -222,8 +224,8 @@ builder store_coins(builder b, int x) asm "STVARUINT16";
 int equal_slices (slice a, slice b) asm "SDEQ";
 int builder_null?(builder b) asm "ISNULL";
 builder store_builder(builder to, builder from) asm "STBR";`
+    }
   }
-
 // @ts-ignore--next-line
   let instance = null;
   let isInitializing = false;
@@ -261,10 +263,10 @@ builder store_builder(builder to, builder from) asm "STBR";`
   }
 
 
-  const result = await compileFunc({
-    entryPoints: ['stdlib.fc', 'contract.fc'],
-    sources: SourcesMap
-  });
+  const result = await compileFunc(
+      SourcesMap
+  );
+  console.log("superRes",result);
   // @ts-ignore--next-line
   const codeBoc: string = result['codeBoc'];
   const codeCell = Cell.fromBoc(Buffer.from(codeBoc, 'base64'))[0];
@@ -277,14 +279,8 @@ builder store_builder(builder to, builder from) asm "STBR";`
   };
   console.log("dataCell", cellToBoc(dataCell))
 
-  // const contract = await SmartContract.fromCell(codeCell, dataCell, {
-  //     debug: true,
-  // });
-  // let dataCell = new Cell()
-  // dataCell.bits.writeUint(0, 32)
-  //let contract = await SmartContract.fromFuncSource(source, dataCell, {getMethodsMutate: true})
 
-  const function_selector = crc16("get_total") & 0xffff | 0x10000 //((0, crc16)("too") & 0xffff) | 0x10000
+  const function_selector = crc16("get_total") & 0xffff | 0x10000
   console.log(function_selector);
   // @ts-ignore
   const config = {
@@ -298,30 +294,6 @@ builder store_builder(builder to, builder from) asm "STBR";`
 
   }
 // @ts-ignore--next-line
-  const vm = await vm_exec(config);
-  return vm;
-  //console.log(vm);
-  //const runVM = await vmExec_1(config);
-  // @ts-ignore--next-line
-  //  console.log(runVM);
-  //let res = await contract.invokeGetMethod('test', [])
-
-  // @ts-ignore:next-line
-  // const codeBoc = result['codeBoc'];
-  //const codeCell = Cell.fromBoc(Buffer.from(codeBoc, 'base64'))[0];
-  //const dataCell = new Builder().storeUint(24, 64).endCell();
-  // const contract = await SmartContract.fromCell(codeCell, dataCell, {
-  //     debug: true,
-  // });
-  //
-  // const response = await contract.invokeGetMethod('get_total', []);
-  // const counter = response.result[0].toString();
-  //
-  // console.log({ codeBoc });
-
+  return  await vm_exec(config);
 }
 
-(async () => {
-
-
-})();

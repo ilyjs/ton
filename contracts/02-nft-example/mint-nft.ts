@@ -12,13 +12,15 @@ const dataInit = new Builder()
   .endCell();
 
 const contract = await SmartContract.fromFuncSource({
-  entryPoints: ['stdlib.fc', 'op-codes.fc', 'params.fc', 'nft-item.fc'],
-  sources: {
-    'stdlib.fc': readFileSync('./02-nft-example/stdlib.fc', 'utf-8'),
-    'op-codes.fc': readFileSync('./02-nft-example/op-codes.fc', 'utf-8'),
-    'params.fc': readFileSync('./02-nft-example/params.fc', 'utf-8'),
-    'nft-item.fc': readFileSync('./02-nft-example/nft-item.fc', 'utf-8'),
-  }
+    targets: ['nft-item.fc'],
+    // Sources
+    sources: {
+        'stdlib.fc': readFileSync('./02-nft-example/stdlib.fc', 'utf-8'),
+        'op-codes.fc': readFileSync('./02-nft-example/op-codes.fc', 'utf-8'),
+        'params.fc': readFileSync('./02-nft-example/params.fc', 'utf-8'),
+        'nft-item.fc': readFileSync('./02-nft-example/nft-item.fc', 'utf-8'),
+
+    },
 }, dataInit, {
   debug: true
 });

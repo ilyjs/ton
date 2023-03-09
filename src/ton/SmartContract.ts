@@ -3,12 +3,13 @@ import {
   buildC7,
   C7Config,
   getSelectorForMethod,
-  runTVM, TvmRunner, TvmRunnerSynchronous,
+   TvmRunner, TvmRunnerSynchronous,
   TVMStack,
   TVMStackEntry,
   TVMStackEntryTuple
 } from "./executor/executor";
-import {compileFunc, CompilerConfig} from 'ton-compiler/dist/wasm';
+import {compileFunc} from '@ton-community/func-js';
+
 import BN from "bn.js";
 import {bocToCell, cellToBoc} from "./utils/cell";
 import {OutAction, parseActionsList, SetCodeAction} from "./utils/parseActionList";
@@ -241,7 +242,7 @@ export class SmartContract {
     this.codeCellBoc = cellToBoc(codeCell)
   }
 
-  static async fromFuncSource(compileConfig: CompilerConfig, dataCell: Cell, config?: Partial<SmartContractConfig>) {
+  static async fromFuncSource(compileConfig: {targets: string[], sources: {"contract.fc": string, "stdlib.fc": string}}, dataCell: Cell, config?: Partial<SmartContractConfig>) {
     let compiledSource = await compileFunc(compileConfig);
 
     if (compiledSource.status === 'error') {
