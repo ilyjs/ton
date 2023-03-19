@@ -14,6 +14,11 @@ module.exports = {
     module: {
 
         rules: [
+
+            {
+                test: /\.(png|jp(e*)g|svg|gif)$/,
+                type: "asset/resource",
+            },
             {
                 test: /\.wasm$/,
                 loader: "file-loader",

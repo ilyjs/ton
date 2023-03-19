@@ -8,6 +8,8 @@ import files from "../files";
 import {writeFileSync, mkdirSync} from 'memfs';
 import {runTs} from "../utils/runTs";
 import {Preview, Wrap} from "../styles/Editor";
+import { observer } from 'mobx-react-lite';
+import { useStore } from '../store';
 
 window['fileName'] = "./01-simple-example/contract.fc";
 
@@ -20,9 +22,12 @@ for (const filePath in files) {
 
 loader.config({monaco});
 
-export const EditorFn = () => {
+export const EditorFn =  observer(() => {
     const [value, setValue] = useState({});
     const [fileName, setFileName] = useState("./01-simple-example/contract.fc");
+    const {  selectedNode, selectFile } = useStore().store.fileStore;
+
+    console.log("files", files)
 
     // hack for changing file from tree
     window['setFileName'] = (value) => {
@@ -34,7 +39,6 @@ export const EditorFn = () => {
     useEffect(() => {
         editorRef.current?.focus();
     }, [files[window['fileName']].name]);
-    console.log(files[window['fileName']].name)
 
     function handleEditorChange(value: any) {
         writeFileSync(`./${window['fileName']}`, value);
@@ -44,42 +48,53 @@ export const EditorFn = () => {
         editorRef.current = editor;
     }
 
-    useEffect(() => {
-        window.addEventListener("keydown", async (ev) => {
-            if (ev.shiftKey && ev.key === 'Enter') {
-                ev.preventDefault();
-                ev.stopPropagation();
+    const handleKeyDown = async (ev: KeyboardEvent) => {
+        if (ev.shiftKey && ev.key === 'Enter') {
+            ev.preventDefault();
+            ev.stopPropagation();
 
-                const runCodeHandler = async () => {
-                    console.log(fileName, files[window['fileName']]);
-                    if (files[window['fileName']].language === "func") {
-                        const prewCode = await runCode(editorRef.current.getValue());
-                        setValue(prewCode);
-                    }
-
-                    if (files[window['fileName']].language === "typescript") {
-                        await runTs(editorRef.current.getValue(), setValue);
-                    }
+            const runCodeHandler = async () => {
+                console.log("selectFile", selectFile);
+                if (selectFile && selectFile.data?.language === "func") {
+                    console.log(11111);
+                    console.log("selectFile 11111", selectFile);
+                    console.log("editorRef.current.getValue()", editorRef.current.getValue())
+                    const prewCode = await runCode(editorRef.current.getValue());
+                    setValue(prewCode);
                 }
 
-                await runCodeHandler();
+                if (selectFile && selectFile.data?.language === "typescript") {
+                    await runTs(editorRef.current.getValue(), setValue);
+                }
             }
-        });
-    }, []);
+
+            await runCodeHandler();
+        }
+    }
+
+    useEffect(() => {
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keyup", handleKeyDown);
+
+    }, [selectFile]);
+
+
 
     return <Wrap>
-        <Editor
+        {selectFile && selectFile.data?
+          <Editor
             theme={"vs-dark"}
             height="100vh"
-            path={files[window['fileName']].name}
-            defaultLanguage={files[window['fileName']].language}
-            defaultValue={files[window['fileName']].value}
+            path={selectFile.data?.path}
+            defaultLanguage={selectFile.data?.language}
+            defaultValue={selectFile.data?.value}
             onChange={handleEditorChange}
             onMount={handleEditorDidMount}
-        />
+          /> : <div style={{width: 525, backgroundColor: '#1e1e1e'}}></div>
+        }
         <Preview>
             <ReactJson src={value} theme={'twilight'}></ReactJson>
         </Preview>
     </Wrap>
 
-}
+})
