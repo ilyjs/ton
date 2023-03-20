@@ -266,22 +266,22 @@ builder store_builder(builder to, builder from) asm "STBR";`
   const result = await compileFunc(
       SourcesMap
   );
-  console.log("superRes",result);
+ // console.log("superRes",result);
   // @ts-ignore--next-line
   const codeBoc: string = result['codeBoc'];
   const codeCell = Cell.fromBoc(Buffer.from(codeBoc, 'base64'))[0];
   const dataCell = new Builder().storeUint(24, 64).endCell();
-  console.log(codeBoc)
-  console.log(codeCell)
-  console.log(dataCell);
+  // console.log(codeBoc)
+  // console.log(codeCell)
+  // console.log(dataCell);
   const cellToBoc = (cell: any): string => {
     return cell.toBoc({idx: false}).toString('base64');
   };
-  console.log("dataCell", cellToBoc(dataCell))
+  //console.log("dataCell", cellToBoc(dataCell))
 
 
   const function_selector = crc16("get_total") & 0xffff | 0x10000
-  console.log(function_selector);
+  //console.log(function_selector);
   // @ts-ignore
   const config = {
     debug: true,

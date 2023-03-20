@@ -26,7 +26,7 @@ export const runTs = async (code: any, setValue: (object: object) => void) => {
         format: 'es',
         name: 'bundle',
     });
-    console.log(result);
+    //console.log(result);
 
     await (async function (Builder, SmartContract, Cell, InternalMessage, CommonMessageInfo, CellMessage, Buffer, readFileSync, contractAddress, compileFunc, Address) {
         try {

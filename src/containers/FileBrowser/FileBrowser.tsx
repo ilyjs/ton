@@ -11,7 +11,11 @@ import { CustomNode } from './components/CustomNode';
 import { useStore } from '../../store';
 import { observer } from 'mobx-react-lite';
 import newFiles from '../../filesNew';
+import {initFile} from '../../utils/fileSystem';
 import './components/styles/style.css';
+import files from '../../files';
+
+initFile(files,['./01-simple-example', './02-nft-example']);
 
 export const FileBrowser = observer(() => {
   const { files, setFiles, setSelectedNode, selectedNode } = useStore().store.fileStore;
@@ -22,7 +26,6 @@ export const FileBrowser = observer(() => {
     setFiles(newFiles);
   }, []);
 
-  console.log('selected', selectedNode);
   return <DndProvider backend={MultiBackend} options={getBackendOptions()}>
     <Tree
       tree={files??[]}
