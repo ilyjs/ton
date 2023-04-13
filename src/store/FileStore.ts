@@ -9,8 +9,10 @@ export class FileStore implements IFileStore {
   currentFile: NodeModel = null;
   files?: NodeModel[] = null;
   selectedNode?: NodeModel = null;
+  lastId = 100;
   setFiles = (files: NodeModel[]) => this.files = files;
   setSelectedNode = (node: NodeModel) => this.selectedNode = node;
+  setLastId = (lastId: number) => this.lastId = lastId;
   store: RootStoreModel;
 
   get selectFile() {
@@ -22,13 +24,20 @@ export class FileStore implements IFileStore {
     return toJS(this.currentFile);
   }
 
+  changeFileName = (file: any, index: number) => {
+    this.files[index] = file;
+  }
+
   constructor(private rootStore: RootStoreModel) {
     this.store = rootStore;
     makeObservable(this, {
       files: observable,
       selectedNode: observable,
+      lastId: observable,
       setSelectedNode: action,
       setFiles: action,
+      setLastId: action,
+      changeFileName: action,
       selectFile: computed
 
     });

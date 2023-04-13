@@ -43,8 +43,6 @@ export const EditorFn =  observer(() => {
     function handleEditorChange(value: any) {
         if(selectFile && selectFile.data?.path){
             writeFile(`./${selectFile.data?.path}`, value);
-            console.log("`./${selectFile.data?.path}`", `./${selectFile.data?.path}`);
-            console.log("value", value);
         }
        // console.log('${window[`${selectFile.data?.path}',`${window[`${selectFile.data?.path}`]}`)
         //console.log('selectFile.data?.path','${window[`${selectFile.data?.path}',selectFile.data?.path)

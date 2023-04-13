@@ -4,6 +4,7 @@ import Switch from '@mui/material/Switch';
 import TonLogo from '../styles/ton_editor_logo.svg';
 import styled from '@emotion/styled';
 import FileBrowser from '../containers/FileBrowser';
+import FileCreator from '../containers/FileCreator';
 import React from 'react';
 
 const LabelHeader = styled.h3`
@@ -26,7 +27,7 @@ const Header = styled.header`
 `;
 const LeftPanel = styled.div`
   display: inline-block;
-  width: 15%;
+  width: 30%;
   height: 100vh;
   position: absolute;
 `;
@@ -37,9 +38,9 @@ const Tree = styled.div`
 `;
 const Editor = styled.div`
   display: inline-block;
-  width: 85%;
+  width: 70%;
   height: 100vh;
-  left: 15%;
+  left: 30%;
   position: absolute;
 `;
 const Layout = () => {
@@ -48,12 +49,12 @@ const Layout = () => {
 
   return <>
     <Header>
-      <Logo src={TonLogo} alt='React Logo' />
       <LabelHeader><Label> Ton Editor </Label> <small style={{ color: '#aaa' }}>press
         [shift+enter] to run the code</small></LabelHeader>
     </Header>
     <LeftPanel>
       {/*<Tree id='tree'></Tree>*/}
+      <FileCreator/>
       <FileBrowser/>
     </LeftPanel>
     <Editor>
