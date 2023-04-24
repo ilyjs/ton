@@ -4,21 +4,10 @@ import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import { NodeModel } from '@minoru/react-dnd-treeview';
 import { CustomData } from './types';
 import { TypeIcon } from './TypeIcon';
+import {EditableFilenameInput} from './EditableFilenameInput';
 import { TreeRoot, ExpandIconWrapper, LabelGridItem, ButtonsNode, ButtonNode } from './styles';
 import { IconButton, TextField } from '@mui/material';
 import { Delete, FileCopy, Edit, Check } from '@mui/icons-material';
-import * as events from 'events';
-import styled from '@emotion/styled';
-
-const StyledTextField = styled(TextField)`
-  && {
-    input {
-      font-size: 14px;
-      padding: 6px 6px;
-
-    }
-  }
-`;
 
 type Props = {
   node: NodeModel<CustomData>;
@@ -28,6 +17,7 @@ type Props = {
   onToggle: (id: NodeModel['id']) => void;
   onSelect: (node: NodeModel) => void;
   onChangeFileName : (id: string | number, fileName: string) => void;
+  onDelete: (index: number | string) => void;
 
 };
 
@@ -35,14 +25,19 @@ export const CustomNode: React.FC<Props> = (props) => {
   const { droppable, data, text } = props.node;
   const [hover, setHover] = useState(false);
   const [visibleInput, setVisibleInput] = useState(false);
-  const [labelText, setLabelText] = useState(text);
   const indent = props.depth * 24;
   const inputRef = useRef(null);
 
-  const handleShowInput = (e: any) => {
+  const handleShowInput = (e: React.MouseEvent<HTMLButtonElement>) => {
     setVisibleInput(true);
     e.stopPropagation();
   };
+
+  const handleDelete = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    props.onSelect(props.node);
+    console.log('handleDelete',props.node)
+  }
 
   useEffect(() => {
     inputRef &&  inputRef.current && inputRef.current.focus()
@@ -53,40 +48,17 @@ export const CustomNode: React.FC<Props> = (props) => {
     e.stopPropagation();
     props.onToggle(props.node.id);
   };
-  const handleChangeText = (e: any) => {
-    setLabelText(e.target.value);
-  };
-  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      handleSubmit();
-    }
+
+  const onDelete = (event: React.MouseEvent) => {
+    props.onDelete(props.node.id);
+    event.stopPropagation();
   }
-  const handleSubmit = () => {
+
+  const handleSubmit = (labelText: string) => {
      setVisibleInput(false);
-     console.log('props.node.id',props.node.id)
      props.onChangeFileName(props.node.id, labelText);
   };
 
-  function useOutsideClick(
-    ref: React.RefObject<HTMLElement>,
-    fn: () => void,
-    event: keyof DocumentEventMap = 'mousedown',
-  ) {
-    useEffect(() => {
-      function handleClickOutside(event: any) {
-        if (ref.current && !ref.current.contains(event.target)) {
-          fn();
-        }
-      }
-
-      document.addEventListener(event, handleClickOutside);
-      return () => {
-        document.removeEventListener(event, handleClickOutside);
-      };
-    }, [ref, event]);
-  }
-
-  useOutsideClick(inputRef, handleSubmit);
   return (
     <TreeRoot
       className={`tree-node`}
@@ -110,13 +82,9 @@ export const CustomNode: React.FC<Props> = (props) => {
       {visibleInput ? <>
 
           <div>
-            <StyledTextField
-              autoFocus
-              ref={inputRef}
-              value={labelText}
-              onChange={handleChangeText}
-              onKeyDown={handleKeyDown}
-              onClick={(e: any) => e.stopPropagation()}
+            <EditableFilenameInput
+              text={text}
+              onSubmit={handleSubmit}
             />
 
           </div>
@@ -140,7 +108,7 @@ export const CustomNode: React.FC<Props> = (props) => {
             </IconButton>
           </ButtonNode>
           <ButtonNode>
-            <IconButton size='small'>
+            <IconButton onClick={onDelete} size='small'>
               <Delete fontSize='small' />
             </IconButton>
           </ButtonNode>

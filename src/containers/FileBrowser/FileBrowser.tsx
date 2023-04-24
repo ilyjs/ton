@@ -31,6 +31,7 @@ export const FileBrowser = observer(() => {
     lastId,
     setLastId,
     changeFileName,
+    deleteFile
   } = useStore().store.fileStore;
 
   const getFileExtension = (nameFile: string) => {
@@ -62,6 +63,7 @@ export const FileBrowser = observer(() => {
   }
 
   const changeDuplicateName = (name: string) => {
+    console.log("changeDuplicateName");
     const nameParts = name.split('.');
     if (nameParts.length === 1) return name + 1;
     nameParts[nameParts.length - 2] = nameParts[nameParts.length - 2] + '1';
@@ -80,25 +82,18 @@ export const FileBrowser = observer(() => {
     const { dropTargetId, monitor } = options;
     const itemType = monitor.getItemType();
     if (itemType === NativeTypes.FILE) {
-      const files: File[] = monitor.getItem().files;
+      const uploadFiles: File[] = monitor.getItem().files;
       const nodes: NodeModel[] = [];
-      console.log('newTree', toJS(newTree));
-      // 'data': {
-      //   "path": './01-simple-example/contract.fc',
-      //     'fileType': 'func',
-      //     'value': contract01_contract_raw,
-      //     'language': 'func',
-      // },
 
-      for (let i = 0; i < files.length; i++) {
+      for (let i = 0; i < uploadFiles.length; i++) {
         let value;
-        let fileName = files[0].name;
-        await files[0].text().then((text) => (value = text));
+        let fileName = uploadFiles[0].name;
+        await uploadFiles[0].text().then((text) => (value = text));
         const language = getFileLanguage(fileName);
-        const isNameMatch = isNameMatchCheck(newFiles, fileName, dropTargetId);
+        const isNameMatch = isNameMatchCheck(files, fileName, dropTargetId);
         if (isNameMatch) fileName = changeDuplicateName(fileName);
 
-        const path = getFilePath(newFiles, fileName, dropTargetId);
+        const path = getFilePath(files, fileName, dropTargetId);
         nodes.push({
           id: lastId + i,
           parent: dropTargetId,
@@ -116,7 +111,7 @@ export const FileBrowser = observer(() => {
 
       setFiles(mergedTree);
       console.log(toJS(mergedTree));
-      setLastId(lastId + files.length);
+      setLastId(lastId + uploadFiles.length);
     } else {
       setFiles(newTree);
     }
@@ -164,6 +159,13 @@ export const FileBrowser = observer(() => {
     changeFileName(file, index);
   }
 
+  const onDelete = (id: number | string) => {
+    const { index} = findFileById(files,id);
+    console.log("props.node",index);
+    if(!index) return;
+    deleteFile(index);
+  }
+
   return <DndProvider backend={MultiBackend} options={getBackendOptions()}>
     <Tree
       tree={files ?? []}
@@ -179,6 +181,7 @@ export const FileBrowser = observer(() => {
           isOpen={isOpen}
           onToggle={onToggle}
           onChangeFileName={onChangeFileName}
+          onDelete={onDelete}
           onSelect={handleSelect}
           isSelected={node.id === selectedNode?.id}
         />
