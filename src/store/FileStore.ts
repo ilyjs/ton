@@ -27,6 +27,7 @@ export class FileStore implements IFileStore {
   changeFileName = (file: any, index: number) => {
     console.log("this.files", toJS(this.files))
     this.files[index] = file;
+    return toJS(this.files);
     //this.files.
   }
 

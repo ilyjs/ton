@@ -22,8 +22,8 @@ export const initFile3 = (files: any) => {
     if (file.data && file.data.hasOwnProperty('path') && file.data.hasOwnProperty('value')) {
       jsonFiles[file.data.path] = file.data.value;
     }
+
     vol.reset();
-    console.log("jsonFiles",jsonFiles)
     vol.fromJSON(jsonFiles);
   }
 

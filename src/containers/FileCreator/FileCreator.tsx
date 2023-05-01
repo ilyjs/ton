@@ -10,11 +10,16 @@ const Wrapper = styled.div`
   padding: 10px
 `;
 
-export const FileCreator = () => {
-  return <Wrapper> <IconButton aria-label='addFolder'>
+interface IProps {
+  addFolder: (event: React.MouseEvent) => void;
+  addFile: (event: React.MouseEvent) => void;
+}
+
+export const FileCreator = ({addFolder, addFile}: IProps) => {
+  return <Wrapper> <IconButton onClick={addFolder} aria-label='addFolder'>
     <CreateNewFolderIcon fontSize='small' />
   </IconButton>
-    <IconButton aria-label='addFile'>
+    <IconButton onClick={addFile} aria-label='addFile'>
       <NoteAddIcon fontSize='small' />
     </IconButton>
   </Wrapper>;

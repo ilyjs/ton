@@ -26,7 +26,7 @@ loader.config({monaco});
 export const EditorFn =  observer(() => {
     const [value, setValue] = useState({});
     const [fileName, setFileName] = useState("./01-simple-example/contract.fc");
-    const {  selectedNode, selectFile } = useStore().store.fileStore;
+    const {  selectedNode, selectFile,files, setFiles } = useStore().store.fileStore;
 
 
     // hack for changing file from tree
@@ -39,10 +39,15 @@ export const EditorFn =  observer(() => {
     // useEffect(() => {
     //     editorRef.current?.focus();
     // }, [files[window['fileName']].name]);
-
+    const indexFile =  selectFile? files.findIndex(item => item.id === selectFile.id) : null;
     function handleEditorChange(value: any) {
         if(selectFile && selectFile.data?.path){
-            writeFile(`./${selectFile.data?.path}`, value);
+            console.log("selectFile",selectFile)
+            let file = files[indexFile];
+            file.data.value = value;
+            files[indexFile] = file;
+            setFiles(files);
+           // writeFile(`./${selectFile.data?.path}`, value);
         }
        // console.log('${window[`${selectFile.data?.path}',`${window[`${selectFile.data?.path}`]}`)
         //console.log('selectFile.data?.path','${window[`${selectFile.data?.path}',selectFile.data?.path)

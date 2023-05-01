@@ -12,6 +12,7 @@ import { useStore } from '../../store';
 import { observer } from 'mobx-react-lite';
 import newFiles from '../../filesNew';
 import { deleteFile, initFile2, initFile3 } from '../../utils/fileSystem';
+import FileCreator from '../FileCreator';
 import './components/styles/style.css';
 import { NativeTypes } from 'react-dnd-html5-backend';
 
@@ -31,7 +32,7 @@ export const FileBrowser = observer(() => {
     lastId,
     setLastId,
     changeFileName,
-    deleteFile
+    deleteFile,
   } = useStore().store.fileStore;
 
   const getFileExtension = (nameFile: string) => {
@@ -62,8 +63,46 @@ export const FileBrowser = observer(() => {
     return `${parentPath}/${nameFile}`;
   }
 
+  function extractNameAndIndex(fileName: string) {
+    const match = fileName.match(/^(.+?)(?:\((\d+)\))?(\.[^.]+)?$/);
+    if (!match) {
+      throw new Error('Invalid file name format');
+    }
+
+    const baseName = match[1];
+    const index = match[2] ? parseInt(match[2], 10) : 0;
+    const extension = match[3] ? match[3] : '';
+
+    return { baseName, index, extension };
+  }
+
+  function generateUniqueName(files: any, fileName: string) {
+    const { baseName, index, extension } = extractNameAndIndex(fileName);
+
+    let newIndex = index;
+    let uniqueName = fileName;
+    let isUnique = false;
+
+    while (!isUnique) {
+      isUnique = true;
+
+      for (const file of files) {
+        if (file.text === uniqueName) {
+          isUnique = false;
+          newIndex++;
+          uniqueName = extension
+            ? `${baseName}(${newIndex})${extension}`
+            : `${baseName}(${newIndex})`;
+          break;
+        }
+      }
+    }
+
+    return uniqueName;
+  }
+
   const changeDuplicateName = (name: string) => {
-    console.log("changeDuplicateName");
+    console.log('changeDuplicateName');
     const nameParts = name.split('.');
     if (nameParts.length === 1) return name + 1;
     nameParts[nameParts.length - 2] = nameParts[nameParts.length - 2] + '1';
@@ -79,23 +118,24 @@ export const FileBrowser = observer(() => {
   }
 
   const handleDrop = async (newTree: NodeModel[], options: DropOptions) => {
-    const { dropTargetId, monitor } = options;
+    let { dropTargetId } = options;
+    const { monitor } = options;
+    dropTargetId = dropTargetId ? dropTargetId : 1;
     const itemType = monitor.getItemType();
     if (itemType === NativeTypes.FILE) {
       const uploadFiles: File[] = monitor.getItem().files;
       const nodes: NodeModel[] = [];
-
       for (let i = 0; i < uploadFiles.length; i++) {
         let value;
-        let fileName = uploadFiles[0].name;
-        await uploadFiles[0].text().then((text) => (value = text));
+        let fileName = uploadFiles[i].name;
+        await uploadFiles[i].text().then((text) => (value = text));
         const language = getFileLanguage(fileName);
         const isNameMatch = isNameMatchCheck(files, fileName, dropTargetId);
-        if (isNameMatch) fileName = changeDuplicateName(fileName);
+        if (isNameMatch) fileName = generateUniqueName(newTree, fileName);
 
         const path = getFilePath(files, fileName, dropTargetId);
         nodes.push({
-          id: lastId + i,
+          id: lastId + 1,
           parent: dropTargetId,
           text: fileName,
           data: {
@@ -110,9 +150,18 @@ export const FileBrowser = observer(() => {
       const mergedTree = [...newTree, ...nodes];
 
       setFiles(mergedTree);
-      console.log(toJS(mergedTree));
       setLastId(lastId + uploadFiles.length);
     } else {
+      const id = monitor.getItem().id;
+      const index = newTree.findIndex(item => item.id === id);
+      let dropFile = newTree[index];
+      let fileName = dropFile.text;
+      const isNameMatch = isNameMatchCheck(files, fileName, dropTargetId);
+      if (isNameMatch) fileName = generateUniqueName(newTree, fileName);
+
+      const path = getFilePath(files, fileName, dropTargetId);
+      dropFile = { ...dropFile, text: fileName, data: { ...dropFile.data, path } };
+      newTree[index] = dropFile;
       setFiles(newTree);
     }
 
@@ -121,7 +170,7 @@ export const FileBrowser = observer(() => {
 
     const itemIndex = files.findIndex((item: NodeModel) => item.id === id);
     if (itemIndex !== -1) {
-      return {file: files[itemIndex], index: itemIndex};
+      return { file: files[itemIndex], index: itemIndex };
     }
 
   };
@@ -132,7 +181,6 @@ export const FileBrowser = observer(() => {
   }, []);
 
   useEffect(() => {
-    console.log(234)
     files && initFile3(files);
     setTimeout(() => {
       //console.log(vol.toJSON())
@@ -142,57 +190,119 @@ export const FileBrowser = observer(() => {
 
   }, [JSON.stringify(files)]);
 
+  const changePathFilesChildrenFolder = (files: any, id: any) => {
+    const childrenFiles = files.filter((file: any) => file.parent == id);
+    for (let i = 0; i < childrenFiles.length; i++) {
+      const fileName = childrenFiles[i].text;
+      const path = getFilePath(files, fileName, id);
+      const index = files.findIndex((file: any) => file.id === childrenFiles[i].id);
+      files[index].data.path = path;
+    }
+    if (childrenFiles) setFiles(files);
+  };
+
   const onChangeFileName = (id: string | number, fileName: string) => {
-    const {file, index} = findFileById(files,id);
-    if(!file) return;
+    const { file, index } = findFileById(files, id);
+    if (!file) return;
 
-    const isNameMatch = isNameMatchCheck(newFiles, fileName, file.parent);
-    if(isNameMatch) return;
+    const isNameMatch = isNameMatchCheck(files, fileName, file.parent);
+    if (isNameMatch) return;
 
 
-    if(file.data) {
+    if (file.data) {
       const language = getFileLanguage(fileName);
       const path = getFilePath(files, fileName, file.parent);
-       file.data = {...file.data,  language, path, fileType: language}
+      file.data = { ...file.data, language, path, fileType: language };
     }
     file.text = fileName;
-    changeFileName(file, index);
-  }
+    let newFiles = changeFileName(file, index);
+    if(!file.data) {
+      changePathFilesChildrenFolder(newFiles, id);
+    }
+
+  };
 
   const onDelete = (id: number | string) => {
-    const { index} = findFileById(files,id);
-    console.log("props.node",index);
-    if(!index) return;
+    const { index } = findFileById(files, id);
+    if (!index) return;
     deleteFile(index);
-  }
+  };
 
-  return <DndProvider backend={MultiBackend} options={getBackendOptions()}>
-    <Tree
-      tree={files ?? []}
-      rootId={0}
-      extraAcceptTypes={[NativeTypes.FILE]}
-      render={(
-        node: NodeModel<CustomData>,
-        { depth, isOpen, onToggle },
-      ) => (
-        <CustomNode
-          node={node}
-          depth={depth}
-          isOpen={isOpen}
-          onToggle={onToggle}
-          onChangeFileName={onChangeFileName}
-          onDelete={onDelete}
-          onSelect={handleSelect}
-          isSelected={node.id === selectedNode?.id}
-        />
-      )}
-      onDrop={handleDrop}
-      classes={{
-        root: 'treeRoot',
-        draggingSource: 'draggingSource',
-        dropTarget: 'dropTarget',
-      }}
-    />
-  </DndProvider>;
+  const addFolder = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    const parent = 1;
+    let fileName = 'untitled';
+    const isNameMatch = isNameMatchCheck(files, 'untitled', parent);
+    if (isNameMatch) fileName = generateUniqueName(files, fileName);
 
+    const template = {
+      'id': lastId + 1,
+      parent,
+      'droppable': true,
+      'text': fileName,
+    };
+    const mergedTree = [...files, template];
+    setFiles(mergedTree);
+    setLastId(lastId + 1);
+  };
+
+
+  const addFile = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    event.stopPropagation();
+    const parent = 1;
+    let fileName = 'unnamed';
+    const isNameMatch = isNameMatchCheck(files, fileName, parent);
+    if (isNameMatch) fileName = generateUniqueName(files, fileName);
+    const path = getFilePath(files, fileName, parent);
+    const template =  {
+      'id': lastId + 1,
+      parent,
+      'droppable': false,
+      'text': fileName,
+      'data': {
+        path,
+        'fileType': 'txt',
+        'value': "",
+        'language': 'txt'
+      }
+    }
+
+    const mergedTree = [...files, template];
+    setFiles(mergedTree);
+    setLastId(lastId + 1);
+  };
+
+
+  return <>
+    <FileCreator addFile={addFile} addFolder={addFolder} />
+    <DndProvider backend={MultiBackend} options={getBackendOptions()}>
+      <Tree
+        tree={files ?? []}
+        rootId={0}
+        extraAcceptTypes={[NativeTypes.FILE]}
+        render={(
+          node: NodeModel<CustomData>,
+          { depth, isOpen, onToggle },
+        ) => (
+          <CustomNode
+            node={node}
+            depth={depth}
+            isOpen={isOpen}
+            onToggle={onToggle}
+            onChangeFileName={onChangeFileName}
+            onDelete={onDelete}
+            onSelect={handleSelect}
+            isSelected={node.id === selectedNode?.id}
+          />
+        )}
+        onDrop={handleDrop}
+        classes={{
+          root: 'treeRoot',
+          draggingSource: 'draggingSource',
+          dropTarget: 'dropTarget',
+        }}
+      />
+    </DndProvider>;
+  </>;
 });

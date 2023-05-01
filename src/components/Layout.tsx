@@ -1,10 +1,8 @@
 import { rewireEditor } from '../config';
 import { EditorFn } from './Editor';
 import Switch from '@mui/material/Switch';
-import TonLogo from '../styles/ton_editor_logo.svg';
 import styled from '@emotion/styled';
 import FileBrowser from '../containers/FileBrowser';
-import FileCreator from '../containers/FileCreator';
 import React from 'react';
 
 const LabelHeader = styled.h3`
@@ -54,7 +52,6 @@ const Layout = () => {
     </Header>
     <LeftPanel>
       {/*<Tree id='tree'></Tree>*/}
-      <FileCreator/>
       <FileBrowser/>
     </LeftPanel>
     <Editor>
