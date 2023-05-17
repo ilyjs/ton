@@ -26,12 +26,12 @@ export const light: ThemeOptions = {
   ...BaseTheme,
   palette: {
     mode: "light",
-  },
+  }
 };
 
 export const dark: ThemeOptions = {
   ...BaseTheme,
   palette: {
     mode: 'dark',
-  },
+  }
 }
