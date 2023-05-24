@@ -18,6 +18,7 @@ const Button = styled.button`
   color: inherit;
   display: flex;
   flex-shrink: 0;
+  font-size: 16px;
   height: 32px;
   justify-content: center;
   max-height: 100%;
@@ -25,11 +26,13 @@ const Button = styled.button`
   transition: all .1s ease;
   -webkit-appearance: button;
   background-color: initial;
+  background-image: none;
   outline: none;
   background: none;
   border: none;
   cursor: pointer;
   font-family: inherit;
+  font-size: inherit;
   line-height: inherit;
   width: 48px;
 `

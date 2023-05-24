@@ -16,7 +16,14 @@ const ActionToolbar = styled(Toolbar)`
 `
 
 const Logo = styled.div`
-  padding-right: 24px;
+  display: flex;
+  align-items: center;
+  padding-right: 24px;`
+
+const Label = styled(Typography)`
+  background: linear-gradient(45deg, #00a0f0 30%, #a100ef);
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 `
 
 export function NavBar() {
@@ -26,9 +33,9 @@ export function NavBar() {
                 <ActionToolbar variant="dense">
                    <Logo> <MyIcon width="24" height="24"/> </Logo>
 
-                    <Typography variant="h6" color="inherit" component="div">
+                    <Label variant="h6" color="inherit">
                         Ton IDE
-                    </Typography>
+                    </Label>
                 </ActionToolbar>
             </AppBar>
         </Box>
