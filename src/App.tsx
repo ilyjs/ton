@@ -9,7 +9,10 @@ function App() {
         <ThemeProvider theme={theme}>
             <GlobalStyles
                 styles={{
-                    body: { backgroundColor:  theme.palette.background.default },
+                    body: { backgroundColor:  theme.palette.background.default, color: theme.palette.primary.main },
+                    ul: {
+                        listStyle: "none"
+                    }
                 }}
             />
             <RouterProvider router={router}/>

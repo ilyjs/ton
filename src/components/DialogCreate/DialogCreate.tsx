@@ -12,6 +12,9 @@ import InputLabel from '@mui/material/InputLabel';
 import Box from '@mui/material/Box';
 import {WebContainer} from '@webcontainer/api';
 import path from "path-browserify";
+import {useStore} from "../../store";
+import {observer} from "mobx-react-lite";
+import CircularProgress from '@mui/material/CircularProgress';
 
 interface IProps {
     webcontainerInstance: WebContainer | undefined
@@ -22,16 +25,22 @@ interface INode {
     parent: number | string,
     text: string,
     droppable: boolean,
-    type: string,
-    content: object | string
+    data: {
+        type: string,
+        value: string
+    }
 }
 
-export function DialogCreate({webcontainerInstance}: IProps) {
+export const DialogCreate = observer ( function DialogCreate   ({webcontainerInstance}: IProps) {
     const [open, setOpen] = React.useState(true);
+    const [loading, setLoading] = React.useState(false);
     const [projectName, setProjectName] = React.useState("");
     const [contractName, setContractName] = React.useState("");
     const [projectTemplate, setProjectTemplate] = React.useState("");
 
+    const {
+        setFiles,
+    } = useStore().store.fileStore;
 
     function readDirectory(dirPath: string) {
         return new Promise((resolve, reject) => {
@@ -49,7 +58,7 @@ export function DialogCreate({webcontainerInstance}: IProps) {
     async function createTree(rootPath: string, exclude: string[] = []) {
         const tree: any[] = [];
         const idPathMap: any = {};
-        let id = 1;
+        let id = 0;
 
         async function traverseDirectory(dirPath: string, parentId = 0) {
             const dirents: any = await readDirectory(dirPath);
@@ -60,35 +69,42 @@ export function DialogCreate({webcontainerInstance}: IProps) {
                 }
 
                 const fullPath = path.join(dirPath, dirent.name);
-
+                idPathMap[fullPath] = id++;
                 let node: INode = {
                     id: id,
                     parent: parentId,
                     text: dirent.name,
                     droppable: false,
-                    type: 'any',
-                    content: ''
+                    data: {
+                        type: 'any',
+                        value: ''
+                    }
                 };
 
                 if (dirent.isFile()) {
                     node = {
                         ...node,
                         droppable: false,
-                        type: 'file',
-                        content: await webcontainerInstance.fs.readFile(fullPath, 'utf-8'),
+                        data: {
+                            ...node.data, type: 'file', value: await webcontainerInstance.fs.readFile(fullPath, 'utf-8')
+                        }
                     };
                 } else if (dirent.isDirectory()) {
                     node = {
                         ...node,
                         droppable: true,
-                        type: 'directory',
-                        content: {},
+                        data: {
+                            ...node.data,
+                            value: '',
+                            type: 'directory',
+                        }
                     };
                     await traverseDirectory(fullPath, id);
                 }
 
                 tree.push(node);
-                idPathMap[fullPath] = id++;
+
+
             }
         }
 
@@ -102,7 +118,9 @@ export function DialogCreate({webcontainerInstance}: IProps) {
             const excludeItems = ['node_modules', '.gitignore', '.prettierignore', '.prettierrc', 'package-lock.json'];
             createTree( '/', excludeItems)
                 .then(tree => {
+
                     console.log(JSON.stringify(tree, null, 2));
+                    setFiles(tree);
                 })
                 .catch(error => {
                     console.error('Error:', error);
@@ -115,7 +133,7 @@ export function DialogCreate({webcontainerInstance}: IProps) {
             const installProcess = await webcontainerInstance.spawn('npm', ['create', 'ton@latest', projectName]);
             const input2 = installProcess.input.getWriter();
 
-           await installProcess.output.pipeTo(new WritableStream({
+            await installProcess.output.pipeTo( new WritableStream({
 
                 write(data) {
                     if (data == `\x1B[43C`) {
@@ -129,18 +147,23 @@ export function DialogCreate({webcontainerInstance}: IProps) {
 
                     if(data.includes(`For help and docs visit https://github.com/ton-community/blueprint`)){
                         fileSystemTreeCreate();
+                        console.log("Lotor");
+                        setOpen(false);
+                        setLoading(false);
+                        installProcess.kill();
                         input2.abort();
                     }
 
                 }
 
             }));
-            console.log("installProcess.exit", installProcess.exit)
+
 
 
         }
     }
     const handleClose = async () => {
+        setLoading(true);
         console.log(projectName, contractName, projectTemplate)
         if(webcontainerInstance) await createTon();
         setOpen(false);
@@ -156,8 +179,7 @@ export function DialogCreate({webcontainerInstance}: IProps) {
                 <DialogTitle>Blueprint Create project </DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        Create a development environment. Please enter project name, contract name
-                        and select the project template.
+
                     </DialogContentText>
                     <Box
                         component="form"
@@ -207,9 +229,24 @@ export function DialogCreate({webcontainerInstance}: IProps) {
                     </Box>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleClose}>Create</Button>
+                    <Box sx={{ m: 1, position: 'relative' }}>
+                        <Button disabled={loading} onClick={handleClose}>Create </Button>
+
+                        {loading && (
+                            <CircularProgress
+                                size={24}
+                                sx={{
+                                    position: 'absolute',
+                                    top: '50%',
+                                    left: '50%',
+                                    marginTop: '-12px',
+                                    marginLeft: '-12px',
+                                }}
+                            />
+                        )}
+                    </Box>
                 </DialogActions>
             </Dialog>
         </div>
     );
-}
+} )
