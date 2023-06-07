@@ -1,35 +1,62 @@
-import {useEffect} from "react";
-import Editor, {useMonaco, loader} from "@monaco-editor/react";
+import { useRef} from "react";
+import Editor from "@monaco-editor/react";
+
+import { loader } from '@monaco-editor/react';
+import * as monaco from 'monaco-editor';
+import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
+import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
+import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
+import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
+import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
+
 import styled from "@emotion/styled";
 //import * as monaco from "monaco-editor";
 
-//loader.config({monaco});
+self.MonacoEnvironment = {
+    getWorker(_: unknown, label: string) {
+        if (label === 'json') {
+            return new jsonWorker();
+        }
+        if (label === 'css' || label === 'scss' || label === 'less') {
+            return new cssWorker();
+        }
+        if (label === 'html' || label === 'handlebars' || label === 'razor') {
+            return new htmlWorker();
+        }
+        if (label === 'typescript' || label === 'javascript') {
+            return new tsWorker();
+        }
+        return new editorWorker();
+    },
+};
+
+loader.config({ monaco });
+
+loader.init().then((monaco) => console.log('here is the monaco instance:', monaco));
 
 const Wrap = styled.div`
   display: flex;
 `
 
 export const EditorComponent = () => {
-    const monacoInstance = useMonaco();
+    const editorRef = useRef(null);
 
-    useEffect(() => {
-        if (monacoInstance) {
-            //  const modelUri = monaco.Uri.parse('a://b/foo.js');
-            // const model = monacoInstance.editor.createModel('var x = 7;\nvar y = x;', 'javascript', modelUri);
+    function handleEditorDidMount(editor: any) {
+        editorRef.current = editor;
+    }
 
-            // model.onDidChangeMarkers(() => {
-            //     const markers = monacoInstance.editor.getModelMarkers({ resource: modelUri });
-            //     console.log(markers);
-            // });
-        }
-    }, [monacoInstance]);
 
     return (
         <Wrap>
 
-            <Editor theme={"vs-dark"}
-                    height="100vh"
-                    defaultLanguage="javascript" defaultValue="// some comment"/>
+            <Editor
+                theme="vs-dark"
+                height="90vh"
+                defaultLanguage="func"
+                defaultValue="// some comment"
+                onMount={handleEditorDidMount}
+            />
+
         </Wrap>
     );
 };

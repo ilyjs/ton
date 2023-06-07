@@ -1,3 +1,4 @@
+import {memo} from "react";
 import NavBar from "../components/NavBar";
 import {Main} from "./styles/Main.tsx";
 import {WorkSpace} from "./styles/WorkSpace.tsx";
@@ -6,7 +7,9 @@ import DialogCreate from "../../components/DialogCreate";
 import {useWebcontainers} from "../../hooks";
 import FileBrowser from "../../containers/FileBrowser";
 import EditorComponent from "../components/Editor";
+import {rewireEditor} from "../../configEditor/config.ts"
 import styled from "@emotion/styled";
+//import {WebContainer} from "@webcontainer/api";
 
 const LeftPanel = styled.div`
   display: inline-block;
@@ -27,9 +30,12 @@ const Editor = styled.div`
   margin-top: 48px;
 `;
 
-export function Home() {
+export const Home = memo(() => {
+    rewireEditor();
     const webcontainerInstance = useWebcontainers();
-    console.log("webcontainerInstance", webcontainerInstance);
+
+
+
 
     return (
         <Main>
@@ -43,7 +49,7 @@ export function Home() {
             <Editor>
                 <EditorComponent/>
             </Editor>
-            <DialogCreate webcontainerInstance={webcontainerInstance} />
+            <DialogCreate webcontainerInstance={webcontainerInstance}/>
         </Main>
     );
-}
+})

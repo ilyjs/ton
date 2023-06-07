@@ -3,7 +3,7 @@ import {WebContainer} from '@webcontainer/api';
 let webcontainerInstance: WebContainer | undefined;
 
 window.addEventListener('load', async () => {
-
+ console.log("sorto");
     webcontainerInstance = await WebContainer.boot();
 
     const installProcess = await webcontainerInstance.spawn('npm', ['create', 'ton@latest', '1']);
@@ -31,4 +31,3 @@ window.addEventListener('load', async () => {
 
 });
 
-export default webcontainerInstance;
