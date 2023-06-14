@@ -49,7 +49,7 @@ export const Home = memo(() => {
             <Editor>
                 <EditorComponent/>
             </Editor>
-            <DialogCreate webcontainerInstance={webcontainerInstance}/>
+            {/*<DialogCreate webcontainerInstance={webcontainerInstance}/>*/}
         </Main>
     );
 })

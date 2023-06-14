@@ -136,6 +136,12 @@ export const DialogCreate = observer ( function DialogCreate   ({webcontainerIns
             await installProcess.output.pipeTo( new WritableStream({
 
                 write(data) {
+                    console.log(data);
+                    if (data.includes(`Ok to proceed? (y)`)) {
+                        input2.write(`y\n`);
+
+                    }
+
                     if (data == `\x1B[43C`) {
                         input2.write(`${contractName}\n`);
 
