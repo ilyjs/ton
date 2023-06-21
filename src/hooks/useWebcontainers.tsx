@@ -15,7 +15,7 @@ export function useWebcontainers() {
             });
         }
     }, []);
-
+    console.log("lorno", webcontainerInstance)
     return webcontainerInstance;
 }
 

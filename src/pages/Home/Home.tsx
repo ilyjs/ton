@@ -9,6 +9,8 @@ import FileBrowser from "../../containers/FileBrowser";
 import EditorComponent from "../components/Editor";
 import {rewireEditor} from "../../configEditor/config.ts"
 import styled from "@emotion/styled";
+import {Preview} from "./styles/Preview.ts";
+import Terminal from "./terminal";
 //import {WebContainer} from "@webcontainer/api";
 
 const LeftPanel = styled.div`
@@ -23,7 +25,7 @@ const LeftPanel = styled.div`
 
 const Editor = styled.div`
   display: inline-block;
-  width: 70%;
+  width: 50%;
   height: 100vh;
   left: 30%;
   position: absolute;
@@ -34,6 +36,29 @@ export const Home = memo(() => {
     rewireEditor();
     const webcontainerInstance = useWebcontainers();
 
+    const files = {
+        'package.json': {
+            file: {
+                contents: `
+        {
+          "name": "vite-starter",
+          "private": true,
+          "version": "0.0.0",
+          "type": "module",
+          "scripts": {
+            "dev": "vite",
+            "build": "vite build",
+            "preview": "vite preview"
+          },
+          "devDependencies": {
+            "vite": "^4.0.4"
+          }
+        }`,
+            },
+        },
+    };
+
+
 
 
 
@@ -43,13 +68,18 @@ export const Home = memo(() => {
             <WorkSpace>
                 <ActionBar/>
             </WorkSpace>
-            <LeftPanel>
-                <FileBrowser/>
+            <LeftPanel >
+                <FileBrowser webcontainerInstance={webcontainerInstance} />
             </LeftPanel>
             <Editor>
                 <EditorComponent/>
             </Editor>
-            {/*<DialogCreate webcontainerInstance={webcontainerInstance}/>*/}
+            <Preview>
+                {
+                    webcontainerInstance? <Terminal webcontainerInstance={webcontainerInstance} /> : ''
+                }
+            </Preview>
+            <DialogCreate webcontainerInstance={webcontainerInstance}/>
         </Main>
     );
 })

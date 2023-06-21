@@ -125,11 +125,14 @@ export const DialogCreate = observer ( function DialogCreate   ({webcontainerIns
                 .catch(error => {
                     console.error('Error:', error);
                 });
+            console.log(JSON.stringify(files));
 
         }
+
     }
     const createTon = async () => {
         if(webcontainerInstance) {
+            console.log("webcontainerInstance", webcontainerInstance);
             const installProcess = await webcontainerInstance.spawn('npm', ['create', 'ton@latest', projectName]);
             const input2 = installProcess.input.getWriter();
 
