@@ -5,6 +5,7 @@ import {NodeModel} from '@minoru/react-dnd-treeview';
 
 export class FileStore {
     currentFile: NodeModel | null = null;
+    rootDirectory = '';
     files?: NodeModel[] | null = [
         {
             "id": 2,
@@ -183,6 +184,13 @@ export class FileStore {
         return toJS(this.currentFile);
     }
 
+    changeFile = (file: NodeModel, index: number) => {
+        if(this.files) {
+            this.files[index] = file
+            console.log("file", file)
+        }
+    }
+
     changeFileName = (file: any, index: number) => {
         console.log("this.files", toJS(this.files));
         if (this.files && this.files[index]) {
@@ -192,22 +200,33 @@ export class FileStore {
         return null;
     }
 
-    deleteFile = (index: number) => {
+    deleteFile = (id: number | string) => {
         console.log("this.files", toJS(this.files));
-        if (this.files) this.files.splice(index, 1);
+        if (this.files) {
+            const files = this.files.filter((file,) => file.id !== id);
+            this.files = files;
+           // this.files.splice(index, 1);
+        }
+    }
+
+    setRootDirectory = (nameDirectory: string) => {
+        this.rootDirectory = nameDirectory;
     }
 
     constructor(protected rootStore: RootStoreModel) {
         this.store = rootStore;
         makeObservable(this, {
             files: observable,
+            rootDirectory: observable,
             selectedNode: observable,
             lastId: observable,
             setSelectedNode: action,
             setFiles: action,
+            changeFile: action,
             setLastId: action,
             changeFileName: action,
             deleteFile: action,
+            setRootDirectory: action,
             selectFile: computed
 
         });

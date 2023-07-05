@@ -8,6 +8,7 @@ import {EditableFilenameInput} from './EditableFilenameInput';
 import { TreeRoot, ExpandIconWrapper, LabelGridItem, ButtonsNode, ButtonNode } from './styles';
 import { IconButton } from '@mui/material';
 import { Delete, Edit } from '@mui/icons-material';
+import {observer} from "mobx-react-lite";
 
 type Props = {
   node: NodeModel<CustomData>;
@@ -21,7 +22,7 @@ type Props = {
 
 };
 
-export const CustomNode: React.FC<Props> = (props) => {
+export const CustomNode: React.FC<Props> = observer( (props) => {
   const { droppable, data, text } = props.node;
   const [hover, setHover] = useState(false);
   const [visibleInput, setVisibleInput] = useState(false);
@@ -50,6 +51,7 @@ export const CustomNode: React.FC<Props> = (props) => {
   };
 
   const onDelete = (event: React.MouseEvent) => {
+    console.log(544)
     props.onDelete(props.node.id);
     event.stopPropagation();
   }
@@ -116,4 +118,4 @@ export const CustomNode: React.FC<Props> = (props) => {
       )}
     </TreeRoot>
   );
-};
+});

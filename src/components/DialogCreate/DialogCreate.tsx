@@ -11,129 +11,51 @@ import {FormControl, MenuItem} from "@mui/material";
 import InputLabel from '@mui/material/InputLabel';
 import Box from '@mui/material/Box';
 import {WebContainer} from '@webcontainer/api';
-import path from "path-browserify";
-import {useStore} from "../../store";
+// import path from "path-browserify";
+// import {useStore} from "../../store";
 import {observer} from "mobx-react-lite";
 import CircularProgress from '@mui/material/CircularProgress';
+import {useStore} from "../../store";
 
 interface IProps {
-    webcontainerInstance: WebContainer | undefined
+    webcontainerInstance: WebContainer | undefined,
+    fileSystemTreeCreate(): Promise<void>
 }
 
-interface INode {
-    id: number | string,
-    parent: number | string,
-    text: string,
-    droppable: boolean,
-    data: {
-        type: string,
-        value: string
-    }
-}
+// interface INode {
+//     id: number | string,
+//     parent: number | string,
+//     text: string,
+//     droppable: boolean,
+//     data: {
+//         type: string,
+//         value: string
+//     }
+// }
 
-export const DialogCreate = observer ( function DialogCreate   ({webcontainerInstance}: IProps) {
+export const DialogCreate = observer ( function DialogCreate   ({webcontainerInstance, fileSystemTreeCreate}: IProps) {
+
+    const {
+        rootDirectory, setRootDirectory,
+    } = useStore().store.fileStore;
+
     const [open, setOpen] = React.useState(true);
     const [loading, setLoading] = React.useState(false);
-    const [projectName, setProjectName] = React.useState("");
+    ///const [projectName, setProjectName] = React.useState("");
     const [contractName, setContractName] = React.useState("");
     const [projectTemplate, setProjectTemplate] = React.useState("");
 
-    const {
-        setFiles,
-    } = useStore().store.fileStore;
-
-    function readDirectory(dirPath: string) {
-        return new Promise((resolve, reject) => {
-            if(!webcontainerInstance) return;
-
-            webcontainerInstance.fs.readdir(dirPath, { withFileTypes: true }  )
-                .then((dirents) => resolve(dirents))
-                .catch((error) => reject(error))
 
 
-        })
-
-    }
-
-    async function createTree(rootPath: string, exclude: string[] = []) {
-        const tree: any[] = [];
-        const idPathMap: any = {};
-        let id = 0;
-
-        async function traverseDirectory(dirPath: string, parentId = 0) {
-            const dirents: any = await readDirectory(dirPath);
-            if (!webcontainerInstance) return;
-            for (const dirent of dirents) {
-                if (exclude.includes(dirent.name)) {
-                    continue;
-                }
-
-                const fullPath = path.join(dirPath, dirent.name);
-                idPathMap[fullPath] = id++;
-                let node: INode = {
-                    id: id,
-                    parent: parentId,
-                    text: dirent.name,
-                    droppable: false,
-                    data: {
-                        type: 'any',
-                        value: ''
-                    }
-                };
-
-                if (dirent.isFile()) {
-                    node = {
-                        ...node,
-                        droppable: false,
-                        data: {
-                            ...node.data, type: 'file', value: await webcontainerInstance.fs.readFile(fullPath, 'utf-8')
-                        }
-                    };
-                } else if (dirent.isDirectory()) {
-                    node = {
-                        ...node,
-                        droppable: true,
-                        data: {
-                            ...node.data,
-                            value: '',
-                            type: 'directory',
-                        }
-                    };
-                    await traverseDirectory(fullPath, id);
-                }
-
-                tree.push(node);
 
 
-            }
-        }
-
-        await traverseDirectory(rootPath);
-        return tree;
-    }
 
 
-    const fileSystemTreeCreate = async () => {
-        if(webcontainerInstance) {
-            const excludeItems = ['node_modules', '.gitignore', '.prettierignore', '.prettierrc', 'package-lock.json'];
-            createTree( '/', excludeItems)
-                .then(tree => {
 
-                    console.log(JSON.stringify(tree, null, 2));
-                    setFiles(tree);
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                });
-            console.log(JSON.stringify(files));
-
-        }
-
-    }
     const createTon = async () => {
         if(webcontainerInstance) {
             console.log("webcontainerInstance", webcontainerInstance);
-            const installProcess = await webcontainerInstance.spawn('npm', ['create', 'ton@latest', projectName]);
+            const installProcess = await webcontainerInstance.spawn('npm', ['create', 'ton@latest', rootDirectory]);
             const input2 = installProcess.input.getWriter();
 
             await installProcess.output.pipeTo( new WritableStream({
@@ -173,7 +95,7 @@ export const DialogCreate = observer ( function DialogCreate   ({webcontainerIns
     }
     const handleClose = async () => {
         setLoading(true);
-        console.log(projectName, contractName, projectTemplate)
+        console.log(rootDirectory, contractName, projectTemplate)
         if(webcontainerInstance) await createTon();
         setOpen(false);
     };
@@ -203,9 +125,9 @@ export const DialogCreate = observer ( function DialogCreate   ({webcontainerIns
                             type="text"
                             fullWidth
                             variant="standard"
-                            value={projectName}
+                            value={rootDirectory}
                             onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                                setProjectName(event.target.value);
+                                setRootDirectory(event.target.value);
                             }}
 
                         />

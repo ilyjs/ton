@@ -12,6 +12,7 @@ import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
 import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
 import {observer} from "mobx-react-lite";
 import { useStore } from '../../../store';
+import {WebContainer} from "@webcontainer/api";
 
 //import * as monaco from "monaco-editor";
 
@@ -45,8 +46,8 @@ const Wrap = styled.div`
   display: flex;
 `
 
-export const EditorComponent = observer (  () => {
-    const {  selectedNode, selectFile,files, setFiles } = useStore().store.fileStore;
+export const EditorComponent = observer (  ({webcontainerInstance}: { webcontainerInstance: WebContainer | undefined }) => {
+    const {  selectedNode, selectFile,files, setFiles , changeFile} = useStore().store.fileStore;
     const [typeFile, setTypeFile] = useState('func');
 
     const getFileExtension = (nameFile: string) => {
@@ -72,6 +73,41 @@ export const EditorComponent = observer (  () => {
         editorRef.current = editor;
     }
 
+    const saveFile = async (path: string, value?: string) => {
+        if (webcontainerInstance) {
+            await webcontainerInstance.fs.writeFile(path, value ?? '', {encoding: 'utf-8'});
+        }
+    }
+
+
+    function getFileById(files: any, id: number | string) {
+        return files.find((file: any) => file.id === id);
+    }
+
+    function getFilePath(files: any, nameFile: string, parent: number | string): string {
+        if (parent === 0) return `./${nameFile}`;
+
+        const file = getFileById(files, parent);
+        if (!file) {
+            throw new Error(`File with id ${parent} not found`);
+        }
+
+        const parentPath = getFilePath(files, file.text, file.parent);
+        return `${parentPath}/${nameFile}`;
+    }
+
+    function handleEditorChange( value: string | undefined) {
+        if(files){
+        const id = selectFile?.id
+        const index = files?.findIndex(file => file.id == id);
+        const data = {...selectFile.data, value}
+        const file = {...selectFile, data}
+            changeFile(file, index);
+
+        const path = getFilePath(files, selectFile?.text, selectFile?.parent);
+            saveFile(path, value);
+            }
+    }
 
     return (
         <Wrap>
@@ -80,10 +116,11 @@ export const EditorComponent = observer (  () => {
                 path={String(selectFile?.id)?? ''}
                 value={selectFile?.data?.value?? ''}
                 theme="vs-dark"
-                height="90vh"
-                defaultLanguage="func"
+                height="100vh"
+                defaultLanguage={selectFile?.text? getFileLanguage(selectFile?.text): 'text'}
                 language={typeFile}
-                defaultValue="// some comment"
+                onChange={handleEditorChange}
+                defaultValue="// ton ide alpha-0.10"
                 onMount={handleEditorDidMount}
             />
 

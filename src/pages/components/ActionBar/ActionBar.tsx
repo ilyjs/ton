@@ -2,7 +2,11 @@ import {Main} from "./styles/Main";
 import {useTheme} from '@mui/material/styles';
 //import SendIcon from '@mui/icons-material/Send';
 import FileCopyOutlinedIcon from '@mui/icons-material/FileCopyOutlined';
-import { grey } from '@mui/material/colors';
+import BuildOutlinedIcon from '@mui/icons-material/BuildOutlined';
+import ChangeCircleOutlinedIcon from '@mui/icons-material/ChangeCircleOutlined';
+import Tooltip from '@mui/material/Tooltip';
+
+import {grey} from '@mui/material/colors';
 
 import styled from "@emotion/styled";
 
@@ -35,14 +39,27 @@ const Button = styled.button`
   font-size: inherit;
   line-height: inherit;
   width: 48px;
+  margin-top: 12px;
+
+  .icon-active-bar {
+    :hover {
+      color: #535bf2;
+    }
+  }
 `
 
 
-export function ActionBar() {
+export function ActionBar({build, deploy}: { build: () => void,  deploy: () => void}) {
     const theme = useTheme();
     return (<Main theme={theme}>
         <Actions>
-            <Button><FileCopyOutlinedIcon sx={{color: grey['A400']}} /></Button>
+            <Button><FileCopyOutlinedIcon className="icon-active-bar" sx={{color: grey['A400']}}/></Button>
+            <Tooltip placement="left-start" title="Build">
+            <Button onClick={() => build()}><BuildOutlinedIcon className="icon-active-bar" sx={{color: grey['A400']}}/></Button>
+            </Tooltip>
+            <Tooltip placement="left-start" title="Deploy">
+            <Button onClick={() => deploy()}><ChangeCircleOutlinedIcon className="icon-active-bar" sx={{color: grey['A400']}}/></Button>
+            </Tooltip>
         </Actions>
 
     </Main>);

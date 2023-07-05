@@ -34,32 +34,31 @@ export const FileBrowser = observer(({webcontainerInstance}: { webcontainerInsta
 
     const saveFile = async (path: string, value?: string) => {
         if (webcontainerInstance) {
-            await webcontainerInstance.fs.writeFile(path, value ?? '');
+            await webcontainerInstance.fs.writeFile(path, value ?? '', {encoding: 'utf-8'});
         }
     }
 
     const createNewFolder = async (path: string) => {
         if (webcontainerInstance) {
-            await webcontainerInstance.fs.mkdir(path, { recursive: true });
+            await webcontainerInstance.fs.mkdir(path, {recursive: true});
         }
     }
     const removeFile = async (path: string) => {
         if (webcontainerInstance) {
-            await webcontainerInstance.fs.rm(path, { recursive: true });
+            await webcontainerInstance.fs.rm(path, {recursive: true});
 
         }
     }
-    const moveFile = async (oldPath: string, newPath: string, value?: string)=>{
+    const moveFile = async (oldPath: string, newPath: string, value?: string) => {
         await saveFile(newPath, value);
         await removeFile(oldPath);
     }
 
-    const moveFolder = async (oldPath: string, newPath: string, id: number, files:any) => {
-      await createNewFolder(newPath);
-      await  removeFile(oldPath);
+    const moveFolder = async (oldPath: string, newPath: string) => {
+        await createNewFolder(newPath);
+        await removeFile(oldPath);
 
     }
-
 
 
     const getFileExtension = (nameFile: string) => {
@@ -95,6 +94,36 @@ export const FileBrowser = observer(({webcontainerInstance}: { webcontainerInsta
     //
     // }
 
+    async function renameDirectory(directory: any, files: any, index: any, oldPath: string){
+       await removeFile(oldPath);
+       files[index] = directory;
+       await collectDirectory(directory, files, files);
+    }
+
+    async function md(directory: any, files: any, newFiles: any){
+        const id = directory.id;
+        const oldFile = files.filter((file: any) => file.id === id)[0];
+        const oldPath = getFilePath(files, oldFile.text, oldFile.parent);
+        await removeFile(oldPath);
+        await collectDirectory(directory, files, newFiles)
+    }
+
+    async function collectDirectory(directory: any, files: any, newFiles: any) {
+        const id = directory.id;
+        const file = newFiles.filter((file: any) => file.id === id)[0];
+        const path = getFilePath(newFiles, file.text, file.parent);
+        await createNewFolder(path);
+       // const filesInOld = files.filter((file: any) => file.parent === id);
+        const filesInNew = newFiles.filter((file: any) => file.parent === id);
+        for (let i = 0; filesInNew.length > i; i++) {
+            if (filesInNew[i].data.type === 'file') {
+                const newPatch = getFilePath(newFiles, filesInNew[i].text, filesInNew[i].parent);
+                await saveFile(newPatch, filesInNew[i].data.value);
+            } else {
+                await collectDirectory(filesInNew[i], files, newFiles);
+            }
+        }
+    }
 
     function extractNameAndIndex(fileName: string) {
         const match = fileName.match(/^(.+?)(?:\((\d+)\))?(\.[^.]+)?$/);
@@ -191,17 +220,18 @@ export const FileBrowser = observer(({webcontainerInstance}: { webcontainerInsta
             setLastId(lastId + uploadFiles.length);
         } else {
             const id = monitor.getItem().id;
-            console.log("newTree",newTree);
+            console.log("newTree", newTree);
 
 
             const index = newTree.findIndex(item => item.id === id);
             let dropFile = newTree[index];
-            console.log('dropFile',dropFile)
+            console.log('dropFile', dropFile)
             let fileName = dropFile.text;
             const oldIndex = files?.findIndex(item => item.id === id);
-            let oldTarget: string | number =  1;
-            if(files && oldIndex) oldTarget = files[oldIndex].id;
-
+            let oldTarget: string | number = 1;
+            if (files && oldIndex) oldTarget = files[oldIndex].id;
+            const dropFileOld = files?.filter(file => file.id === id)[0];
+            console.log({dropFileOld})
             const currentPath = getFilePath(files, fileName, oldTarget);
             console.log("currentPath", currentPath);
             console.log("files", toJS(files));
@@ -212,17 +242,18 @@ export const FileBrowser = observer(({webcontainerInstance}: { webcontainerInsta
             const path = getFilePath(files, fileName, dropTargetId);
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
-            if (dropFile.data && dropFile.data.type.file ) {
+            if (dropFileOld && dropFileOld.data && dropFileOld.data.type === 'file') {
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore
-                await  moveFile(currentPath, path, dropFile.data.value);
+                await moveFile(currentPath, path, dropFile.data.value);
 
-                dropFile = {...dropFile, text: fileName, data: {...dropFile.data, path}};
-                console.log("loto",dropFile)
+                dropFile = {...dropFile, text: fileName, data: {...dropFileOld.data, path}};
+                console.log("loto", dropFile)
             } else {
 
                 dropFile = {...dropFile, text: fileName, data: {path}};
-                console.log('dropFile folder',dropFile)
+                await md(dropFile, files, newTree);
+                console.log('dropFile folder', dropFile)
 
             }
 
@@ -268,11 +299,11 @@ export const FileBrowser = observer(({webcontainerInstance}: { webcontainerInsta
         if (childrenFiles) setFiles(files);
     };
 
-    const onChangeFileName = (id: string | number, fileName: string) => {
+    const onChangeFileName = async (id: string | number, fileName: string) => {
         if (!files) return;
         const {file, index} = findFileById(files, id);
         if (!file) return;
-
+        const oldPath = getFilePath(files, file.text, file.parent)
         const isNameMatch = isNameMatchCheck(files, fileName, file.parent);
         if (isNameMatch) return;
 
@@ -283,18 +314,33 @@ export const FileBrowser = observer(({webcontainerInstance}: { webcontainerInsta
             file.data = {...file.data, language, path, fileType: language};
         }
         file.text = fileName;
-        const newFiles = changeFileName(file, index);
-        if (!file.data) {
-            changePathFilesChildrenFolder(newFiles, id);
+        if (file.data.type === 'file') {
+            const path = getFilePath(files, fileName, file.parent);
+          await  moveFile(oldPath, path, file.data.value);
+        } else {
+          console.log("files[index]",files[index])
+          await  renameDirectory(file,files, index, oldPath);
         }
+        // const newFiles = changeFileName(file, index);
+        // if (!file.data) {
+        //     changePathFilesChildrenFolder(newFiles, id);
+        // }
 
     };
 
-    const onDelete = (id: number | string) => {
+    const onDelete =  (id: number | string) => {
+        console.log("onDelete 1");
         if (!files) return;
-        const {index} = findFileById(files, id);
-        if (!index) return;
-        deleteFile(index);
+        // const {index} = findFileById(files, id);
+        // if (!index) return;
+        //removeFile
+        console.log("onDelete 2");
+        deleteFile(id);
+        const {file} = findFileById(files, id);
+        const patch = getFilePath(files, file?.text, file?.parent);
+        removeFile(patch);
+
+
     };
 
     const addFolder = async (event: React.MouseEvent) => {
@@ -350,7 +396,6 @@ export const FileBrowser = observer(({webcontainerInstance}: { webcontainerInsta
 
     return <>
         <FileCreator addFile={addFile} addFolder={addFolder}/>
-        <DndProvider backend={MultiBackend} options={getBackendOptions()}>
             <Tree
                 tree={files ?? []}
                 rootId={0}
@@ -377,6 +422,5 @@ export const FileBrowser = observer(({webcontainerInstance}: { webcontainerInsta
                     dropTarget: 'dropTarget',
                 }}
             />
-        </DndProvider>;
     </>;
 });
